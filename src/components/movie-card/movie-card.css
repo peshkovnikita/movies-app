@@ -1,0 +1,120 @@
+.card {
+    width: 451px;
+    height: 275px;
+
+    display: grid;
+    grid-template-columns: 183px 1fr 50px;
+    grid-template-rows: 50px 50px 1fr 50px;
+    column-gap: 18px;
+    grid-template-areas:
+            'poster title rating'
+            'poster info info'
+            'poster desc desc'
+            'poster stars stars';
+
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+}
+
+.movie-poster {
+    grid-area: poster;
+    width: 183px;
+}
+
+.title {
+    grid-area: title;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+
+.title p {
+    display: inline-block;
+    margin: 0;
+    font-size: 20px;
+    line-height: 20px;
+}
+
+.rating {
+    grid-area: rating;
+    display: grid;
+    place-items: center;
+}
+
+.rating-circle {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #E9D100;
+    border-radius: 100%;
+    font-size: 12px;
+}
+
+.info {
+    grid-area: info;
+}
+
+.info .date {
+    display: inline-block;
+    margin: 0;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #827E7E;
+}
+
+.info .genres {
+    color: #575757;
+    height: 20px;
+    font-size: 12px;
+}
+
+.info .genres span {
+    padding: 4px;
+    border-radius: 2px;
+    margin-right: 8px;
+    background-color: #FAFAFA;
+    border: 1px solid #D9D9D9;
+}
+
+.info .genres span:last-child {
+    padding: 4px;
+    border-radius: 2px;
+    margin-right: 0;
+    background-color: #FAFAFA;
+    border: 1px solid #D9D9D9;
+}
+
+.desc {
+    grid-area: desc;
+    padding-top: 10px;
+    padding-right: 18px;
+    font-size: 12px;
+    line-height: 22px;
+}
+
+.stars {
+    grid-area: stars;
+    display: grid;
+    place-items: center;
+    padding-right: 18px;
+}
+
+.stars-container {
+    height: fit-content;
+}
+
+.star-item {
+    margin-left: 8px;
+    color: #FADB14;
+    /*color: #F0F0F0;*/
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.starred {
+
+}
+
+.star-item:first-child {
+    margin: 0;
+}

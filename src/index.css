@@ -1,0 +1,56 @@
+:root {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.layout {
+  background-color: inherit;
+}
+
+.header {
+  height: fit-content;
+  background-color: inherit;
+  line-height: normal;
+  padding: 0;
+}
+
+.main {
+  padding: 36px 0;
+}
+
+.cards-container {
+  flex-wrap: wrap;
+}
+
+.footer {
+  padding: 0;
+  background-color: inherit;
+}
+
+/* Ant Design */
+
+.ant-input-group-addon,
+.ant-input-suffix {
+  display: none!important;
+}
+
+.ant-input-search :where(.css-dev-only-do-not-override-98ntnt).ant-input-group .ant-input-affix-wrapper:not(:last-child) {
+  border-start-end-radius: 6px!important;
+  border-end-end-radius: 6px!important;
+}
+
+.ant-pagination-item-active {
+  background-color: #1677ff!important;
+}
+
+.ant-pagination-item-active a {
+  color: #ffffff!important;
+}
