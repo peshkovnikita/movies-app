@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import MoviesList from './components/movies-list';
-import { Layout, Flex, Button, Pagination, Input, Space } from 'antd';
+import { Layout, Flex, Button, Pagination, Input, Space, Spin, Alert } from 'antd';
 
 import MdApi from './services/md-api.js';
 import './App.css'
@@ -16,29 +16,47 @@ export default class App extends Component {
     moviesAPI = new MdApi();
 
     state = {
-        movieList: null
+        movieList: null,
+        isLoading: true,
+        error: false
     }
 
     async updateMovies() {
-        const list = await this.moviesAPI.getMovies('return');
-        this.setState({ movieList: list.splice(0, 6) });
+        try {
+            const list = await this.moviesAPI.getMovies('return');
+            this.setState({
+                movieList: list.splice(0, 6),
+                isLoading: false
+            });
+        }
+        catch (err) {
+            this.setState({
+                error: true,
+                isLoading: false
+            })
+        }
+
     }
 
     render() {
+        const { movieList, isLoading, error } = this.state
+
+        const spinner = isLoading ? <Spin size='large'></Spin> : null;
+        const alert = error ? <Alert message='Something went wrong' type='warning' showIcon /> : null;
+        const content = error && isLoading ? null : <MoviesList moviesData={ movieList }/>;
         const gapSize = 32;
-        const { movieList } = this.state
 
         return (
             <Layout className='layout'>
                 <Header className='header'>
                     <Input.Search placeholder='Type to search...' allowClear />
-                    <Button onClick={ () => console.log(movieList) } type='primary'>
-                        Get movies
-                    </Button>
+                    <Button onClick={ () => console.log(this.state) } type='primary'>Check State</Button>
                 </Header>
                 <Content className='main'>
-                    <Flex className='cards-container' gap={gapSize} justify='center'>
-                        <MoviesList moviesData={ movieList }/>
+                    <Flex className='cards-container' gap={gapSize} justify='center' >
+                        {spinner}
+                        {content}
+                        {alert}
                     </Flex>
                 </Content>
                 <Footer className='footer'>
