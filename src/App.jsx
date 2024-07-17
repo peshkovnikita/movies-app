@@ -1,31 +1,34 @@
 import React, { Component } from 'react';
-import MoviesList from './components/movies-list';
-import { Layout, Flex, Button, Pagination, Input, Space, Spin, Alert } from 'antd';
-
 import MdApi from './services/md-api.js';
-import './App.css'
+import MoviesList from './components/movies-list';
+import { debounce } from 'lodash';
 
-const { Header, Footer, Content } = Layout;
+import './App.css'
+import { Layout, Flex, Button, Pagination, Input, Space, Spin, Alert } from 'antd';
+const { Header, Content } = Layout;
 
 export default class App extends Component {
-    constructor() {
-        super();
-        this.updateMovies()
-    }
 
     moviesAPI = new MdApi();
 
     state = {
         movieList: null,
-        isLoading: true,
+        isLoading: false,
         error: false
     }
 
-    async updateMovies() {
+    onSearchChange = (e) => {
+        this.setState({ isLoading: true })
+        this.updateMovies(e.target.value)
+    }
+
+    debounceOnChange = debounce(this.onSearchChange, 700)
+
+    async updateMovies(keyword) {
         try {
-            const list = await this.moviesAPI.getMovies('return');
+            const list = await this.moviesAPI.getMovies(keyword);
             this.setState({
-                movieList: list.splice(0, 6),
+                movieList: list,
                 isLoading: false
             });
         }
@@ -35,33 +38,28 @@ export default class App extends Component {
                 isLoading: false
             })
         }
-
     }
 
     render() {
-        const { movieList, isLoading, error } = this.state
+        const { movieList ,isLoading, error } = this.state
 
         const spinner = isLoading ? <Spin size='large'></Spin> : null;
-        const alert = error ? <Alert message='Something went wrong' type='warning' showIcon /> : null;
-        const content = error && isLoading ? null : <MoviesList moviesData={ movieList }/>;
+        const alertWarning = error ? <Alert message='Something went wrong' type='warning' showIcon /> : null;
+        const content = !error && !isLoading ? <MoviesList moviesData={ movieList }/> : null;
         const gapSize = 32;
 
         return (
             <Layout className='layout'>
                 <Header className='header'>
-                    <Input.Search placeholder='Type to search...' allowClear />
-                    <Button onClick={ () => console.log(this.state) } type='primary'>Check State</Button>
+                    <Input placeholder='Type to search...' allowClear onChange={this.debounceOnChange}/>
                 </Header>
                 <Content className='main'>
                     <Flex className='cards-container' gap={gapSize} justify='center' >
                         {spinner}
                         {content}
-                        {alert}
+                        {alertWarning}
                     </Flex>
                 </Content>
-                <Footer className='footer'>
-                    <Pagination align='center' defaultCurrent={1} total={50} />
-                </Footer>
             </Layout>
         )
     }

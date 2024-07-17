@@ -8,8 +8,17 @@ export default class MovieCard extends Component{
     _posterPath = 'https://media.themoviedb.org/t/p/w220_and_h330_face';
 
     sliceDesc(str) {
-        if(str.length > 193) {
-            const sliced = str.slice(0, 193).split(' ');
+        if(str.length > 200) {
+            const sliced = str.slice(0, 200).split(' ');
+            sliced[sliced.length - 1] = '...';
+            return sliced.join(' ');
+        }
+        return str;
+    }
+
+    sliceTitle(str) {
+        if(str.length > 33) {
+            const sliced = str.slice(0, 33).split(' ');
             sliced[sliced.length - 1] = '...';
             return sliced.join(' ');
         }
@@ -21,9 +30,9 @@ export default class MovieCard extends Component{
 
         return(
             <li className='card'>
-                <img className='movie-poster' src={`${this._posterPath}${poster_path}`} alt='poster'/>
+                <img className='movie-poster' src={`${this._posterPath}${poster_path}`} loading='lazy' alt='poster'/>
                 <div className='title'>
-                    <p>{ title }</p>
+                    <p>{ this.sliceTitle(title) }</p>
                 </div>
                 <div className='rating'>
                     <div className='rating-circle'>
@@ -41,7 +50,7 @@ export default class MovieCard extends Component{
                 <p className='desc'>{ overview ? this.sliceDesc(overview) : null }</p>
                 <div className='stars'>
                     <div className='stars-container'>
-                        <StarFilled className='star-item starred'></StarFilled>
+                        <StarFilled className='star-item'></StarFilled>
                         <StarFilled className='star-item'></StarFilled>
                         <StarFilled className='star-item'></StarFilled>
                         <StarFilled className='star-item'></StarFilled>

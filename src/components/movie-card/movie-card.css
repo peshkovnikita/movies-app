@@ -5,7 +5,6 @@
     display: grid;
     grid-template-columns: 183px 1fr 50px;
     grid-template-rows: 50px 50px 1fr 50px;
-    column-gap: 18px;
     grid-template-areas:
             'poster title rating'
             'poster info info'
@@ -25,13 +24,14 @@
     display: flex;
     justify-content: start;
     align-items: center;
+    margin-left: 18px;
 }
 
 .title p {
     display: inline-block;
     margin: 0;
     font-size: 20px;
-    line-height: 20px;
+    line-height: 22px;
 }
 
 .rating {
@@ -52,6 +52,7 @@
 
 .info {
     grid-area: info;
+    margin-left: 18px;
 }
 
 .info .date {
@@ -90,6 +91,7 @@
     padding-right: 18px;
     font-size: 12px;
     line-height: 22px;
+    margin-left: 18px;
 }
 
 .stars {
@@ -97,6 +99,7 @@
     display: grid;
     place-items: center;
     padding-right: 18px;
+    margin-left: 18px;
 }
 
 .stars-container {
