@@ -21,8 +21,9 @@ export default class MovieList extends Component{
         const alertThumb = <Alert message='Use search to find a movie' type='info' showIcon />;
         const alertNotFounded = <Alert message='There is no movie like this' type='error'/>;
 
-        const movies = list ?
-            list.map(movieInfo => <MovieCard { ...movieInfo } key={ movieInfo.id }/>) : null;
+        const movies = list
+            ? list.map(movieInfo => <MovieCard { ...movieInfo } key={ movieInfo.id }/>)
+            : null;
 
         return(
             <>
