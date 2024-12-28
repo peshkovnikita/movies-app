@@ -29,7 +29,6 @@
 
 .title p {
     display: inline-block;
-    margin: 0;
     font-size: 20px;
     line-height: 22px;
 }
@@ -43,8 +42,8 @@
 .rating-circle {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border: 2px solid #E9D100;
     border-radius: 100%;
     font-size: 12px;
@@ -109,7 +108,6 @@
 .star-item {
     margin-left: 8px;
     color: #FADB14;
-    /*color: #F0F0F0;*/
     font-size: 16px;
     cursor: pointer;
 }
@@ -120,4 +118,59 @@
 
 .star-item:first-child {
     margin: 0;
+}
+
+/* Media */
+
+@media (max-width: 430px) {
+    .card {
+        width: 388px;
+        height: 245px;
+
+        grid-template-columns: 70px 1fr 40px;
+        grid-template-rows: 38px 1fr 1fr 1fr;
+        grid-template-areas:
+            'poster title rating'
+            'poster info rating'
+            'desc desc desc'
+            'stars stars stars';
+    }
+
+    .movie-poster {
+        margin-top: 4px;
+        margin-left: 10px;
+        width: 60px;
+    }
+
+    .title, .info {
+        margin-left: 13px!important;
+    }
+
+    .info {
+        padding: 4px 0 6px 0;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+    }
+
+    .info .date {
+        margin: 0;
+    }
+
+    .rating {
+        margin-top: 4px;
+        place-items: start center;
+    }
+
+    .stars {
+        place-items: center end;
+        padding-right: 12px;
+        margin-left: 0;
+    }
+
+    .desc {
+        padding-top: 10px;
+        padding-right: 30px;
+        margin-left: 10px;
+    }
 }
