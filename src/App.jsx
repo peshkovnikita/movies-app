@@ -95,7 +95,7 @@ export default class App extends Component {
         const { movieList ,isLoading, error, moviesCounter, currentPage } = this.state
 
         const spinner = isLoading ? <Spin size='large'></Spin> : null;
-        const alertWarning = error ? <Alert message='Something went wrong' type='warning' showIcon /> : null;
+        const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
         const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesCounter = { moviesCounter }/> : null;
 
         return (

@@ -20,8 +20,8 @@ export default class MovieList extends Component{
 
     render() {
         const { list, counter } = this.state;
-        const alertThumb = <Alert message='Use search to find a movie' type='info' showIcon />;
-        const alertNotFounded = <Alert message='There is no movie like this' type='error'/>;
+        const alertInfo = <Alert message='Use search to find a movie' type='info' />;
+        const alertNotFound = <Alert message='Movie not found' type='error' />;
 
         const movies = list
             ? list.map(movieInfo => <MovieCard { ...movieInfo } key={ movieInfo.id }/>)
@@ -29,8 +29,8 @@ export default class MovieList extends Component{
 
         return(
             <>
-                { counter === 'not found' ? alertNotFounded : null }
-                { !movies && counter !== 'not found' ? alertThumb : movies}
+                { counter === 'not found' ? alertNotFound : null }
+                { !movies && counter !== 'not found' ? alertInfo : movies}
             </>
         );
     }
