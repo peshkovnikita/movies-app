@@ -42,11 +42,6 @@ body {
 
 /* Ant Design */
 
-.ant-input-group-addon,
-.ant-input-suffix {
-  display: none!important;
-}
-
 .ant-input-search :where(.css-dev-only-do-not-override-98ntnt).ant-input-group .ant-input-affix-wrapper:not(:last-child) {
   border-start-end-radius: 6px!important;
   border-end-end-radius: 6px!important;

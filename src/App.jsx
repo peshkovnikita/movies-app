@@ -20,10 +20,26 @@ export default class App extends Component {
         currentPage: 1
     }
 
+    onClear() {
+        this.setState(() => {
+            return {
+                movieList: null,
+                moviesCounter: 0,
+                paginatedMovies: null,
+                isLoading: false,
+                error: false,
+                currentPage: 1
+            }
+        })
+    }
+
     onSearchChange = (e) => {
-        if(!e.target.value) return;
-        this.setState({ isLoading: true })
-        this.updateMovies(e.target.value)
+        if(e.target.value.trim()) {
+            this.updateMovies(e.target.value.trim())
+            this.setState({ isLoading: true })
+        } else {
+            this.onClear()
+        }
     }
 
     debounceOnChange = debounce(this.onSearchChange, 700)
@@ -40,13 +56,24 @@ export default class App extends Component {
     async updateMovies(keyword) {
         try {
             const list = await this.moviesAPI.getMovies(keyword);
-            const paginatedMovies = this.paginateMovies(list, 6)
-            this.setState({
-                movieList: paginatedMovies[1],
-                moviesCounter: list.length,
-                paginatedMovies: paginatedMovies,
-                isLoading: false
-            });
+            if(list.length) {
+                const paginatedMovies = this.paginateMovies(list, 6)
+                this.setState({
+                    movieList: paginatedMovies[1],
+                    moviesCounter: list.length,
+                    paginatedMovies: paginatedMovies,
+                    isLoading: false
+                });
+            }
+            else {
+                this.setState(() => {
+                    return {
+                        movieList: null,
+                        moviesCounter: 'not found',
+                        isLoading: false,
+                    }
+                });
+            }
         }
         catch (err) {
             this.setState({
@@ -69,22 +96,21 @@ export default class App extends Component {
 
         const spinner = isLoading ? <Spin size='large'></Spin> : null;
         const alertWarning = error ? <Alert message='Something went wrong' type='warning' showIcon /> : null;
-        const content = !error && !isLoading ? <MoviesList moviesData={ movieList }/> : null;
-        const gapSize = 32;
+        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesCounter = { moviesCounter }/> : null;
 
         return (
             <Layout className='layout'>
                 <Header className='header'>
-                    <Input placeholder='Type to search...' allowClear onChange={this.debounceOnChange}/>
+                    <Input placeholder='Type to search...' allowClear onChange={this.debounceOnChange} onClear={this.onClear}/>
                 </Header>
                 <Content className='main'>
-                    <Flex className='cards-container' gap={gapSize} justify='center' >
+                    <Flex className='cards-container' gap={32} justify='center' >
                         {spinner}
                         {content}
                         {alertWarning}
                     </Flex>
                 </Content>
-                {moviesCounter
+                {Number(moviesCounter)
                     ? <Footer>
                         <Pagination align="center" current={currentPage} total={moviesCounter} defaultPageSize={6} onChange={this.onPageChange}/>
                       </Footer>
