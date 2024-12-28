@@ -104,7 +104,7 @@ export default class App extends Component {
                     <Input placeholder='Type to search...' allowClear onChange={this.debounceOnChange} onClear={this.onClear}/>
                 </Header>
                 <Content className='main'>
-                    <Flex className='cards-container' gap={32} justify='center' >
+                    <Flex className='cards-container' justify='center' >
                         {spinner}
                         {content}
                         {alertWarning}

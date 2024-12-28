@@ -47,6 +47,10 @@ body {
   border-end-end-radius: 6px!important;
 }
 
+.cards-container {
+  gap: 32px;
+}
+
 .ant-pagination-item-active {
   background-color: #1677ff!important;
 }
@@ -68,5 +72,13 @@ body {
 
   .main {
     padding: 10px 0 10px 0;
+  }
+
+  .cards-container {
+    gap: 20px;
+  }
+
+  .ant-layout-footer {
+    background-color: transparent;
   }
 }
