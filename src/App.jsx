@@ -4,11 +4,10 @@ import MoviesList from './components/movies-list';
 import { debounce } from 'lodash';
 
 import './App.css'
-import { Layout, Flex, Button, Pagination, Input, Space, Spin, Alert } from 'antd';
+import { Tabs, Layout, Flex, Button, Input, Spin, Alert, Pagination } from 'antd';
 const { Header, Content, Footer } = Layout;
 
 export default class App extends Component {
-
     moviesAPI = new MdApi();
 
     state = {
@@ -91,6 +90,10 @@ export default class App extends Component {
         })
     }
 
+    onTabSwitch = (key) => {
+        console.log(key)
+    }
+
     render() {
         const { movieList ,isLoading, error, moviesCounter, currentPage } = this.state
 
@@ -100,8 +103,14 @@ export default class App extends Component {
 
         return (
             <Layout className='layout'>
+                <Tabs
+                    defaultActiveKey='1'
+                    onChange={this.onTabSwitch}
+                    items={ [{key: '1', label: 'Search'}, {key: '2', label: 'Rated'}] }
+                    style={ { display: 'grid', placeItems: 'center'} }
+                />
                 <Header className='header'>
-                    <Input placeholder='Type to search...' allowClear onChange={this.debounceOnChange} onClear={this.onClear}/>
+                    <Input placeholder='Type for searching...' allowClear onChange={this.debounceOnChange} onClear={this.onClear}/>
                 </Header>
                 <Content className='main'>
                     <Flex className='cards-container' justify='center' >

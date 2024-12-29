@@ -29,8 +29,7 @@ export default class MovieList extends Component{
 
         return(
             <>
-                { counter === 'not found' ? alertNotFound : null }
-                { !movies && counter !== 'not found' ? alertInfo : movies}
+                { counter === 'not found' ? alertNotFound : counter > 0 ? movies : alertInfo }
             </>
         );
     }

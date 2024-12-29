@@ -4,7 +4,7 @@
 
     display: grid;
     grid-template-columns: 183px 1fr 50px;
-    grid-template-rows: 50px 50px 1fr 50px;
+    grid-template-rows: 50px 50px 1fr 30px;
     grid-template-areas:
             'poster title rating'
             'poster info info'
@@ -87,7 +87,7 @@
 .desc {
     grid-area: desc;
     padding-top: 10px;
-    padding-right: 18px;
+    padding-right: 16px;
     font-size: 12px;
     line-height: 22px;
     margin-left: 18px;
@@ -96,7 +96,7 @@
 .stars {
     grid-area: stars;
     display: grid;
-    place-items: center;
+    place-items: start;
     padding-right: 18px;
     margin-left: 18px;
 }

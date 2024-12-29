@@ -1,32 +1,31 @@
 import React, { Component } from 'react';
-import { format, parseISO } from 'date-fns'
-import { StarFilled } from '@ant-design/icons';
-import './movie-card.css'
+import { format, parseISO } from 'date-fns';
+import { StarFilled } from '@ant-design/icons'; //??????????
+import { Rate } from 'antd';
+import './movie-card.css';
 
 export default class MovieCard extends Component{
 
     _posterPath = 'https://media.themoviedb.org/t/p/w220_and_h330_face';
 
     sliceDesc(str) {
-        if(str.length > 200) {
-            const sliced = str.slice(0, 200).split(' ');
-            sliced[sliced.length - 1] = '...';
-            return sliced.join(' ');
+        if(str.length > 210) {
+            const sliced = str.slice(0, 210);
+            return `${sliced}...`;
         }
         return str;
     }
 
     sliceTitle(str) {
         if(str.length > 33) {
-            const sliced = str.slice(0, 33).split(' ');
-            sliced[sliced.length - 1] = '...';
-            return sliced.join(' ');
+            const sliced = str.slice(0, 33);
+            return `${sliced}...`;
         }
         return str;
     }
 
     render() {
-        const { title, poster_path, vote_average, release_date, overview } = this.props
+        const { title, poster_path, vote_average, release_date, overview, genres } = this.props
 
         return(
             <li className='card'>
@@ -42,9 +41,7 @@ export default class MovieCard extends Component{
                 <div className='info'>
                     <p className='date'>{ release_date ? format(parseISO(release_date), 'MMMM d, y') : null }</p>
                     <div className='genres'>
-                        <span>Action</span>
-                        <span>Adventure</span>
-                        <span>Science Fiction</span>
+                        {genres.length ? genres.map(genre => <span key={genre.id}>{genre.name}</span>) : null}
                     </div>
                 </div>
                 <p className='desc'>{ overview ? this.sliceDesc(overview) : null }</p>

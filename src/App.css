@@ -1,13 +1,88 @@
-#root {
-    width: 1010px;
-    margin: 0 auto;
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    font-family: Inter, sans-serif;
+}
+
+.layout {
+    background-color: inherit;
     padding: 16px 36px;
+}
+
+.header {
+    height: fit-content;
+    background-color: inherit;
+    line-height: normal;
+    padding: 0;
+}
+
+.main {
+    padding: 36px 0;
+}
+
+.cards-container {
+    flex-wrap: wrap;
+}
+
+.footer {
+    padding: 0;
+    background-color: inherit;
+}
+
+/* Ant Design */
+
+.ant-input-search :where(.css-dev-only-do-not-override-98ntnt).ant-input-group .ant-input-affix-wrapper:not(:last-child) {
+    border-start-end-radius: 6px!important;
+    border-end-end-radius: 6px!important;
+}
+
+.cards-container {
+    gap: 32px;
+}
+
+.ant-pagination-item-active {
+    background-color: #1677ff!important;
+}
+
+.ant-pagination-item-active a {
+    color: #ffffff!important;
+}
+
+.ant-layout-footer {
     background-color: #ffffff;
 }
 
+/* Media */
+
 @media (max-width: 430px) {
-    #root {
-        width: 430px;
-        padding: 18px 18px 0 18px;
+    body {
+        background-color: #ffffff;
+    }
+
+    .layout {
+        padding: 0 16px;
+    }
+
+    .main {
+        padding: 10px 0 10px 0;
+    }
+
+    .ant-tabs-tab-btn {
+        text-shadow: none!important;
+    }
+
+    .cards-container {
+        gap: 20px;
+    }
+
+    .ant-layout-footer {
+        background-color: transparent;
     }
 }
+
+

@@ -8,14 +8,27 @@ export default class MdApi {
         }
     };
 
+    _apiKey = 'ef929c23e2234c286bc0be2f6f6aeb2d';
+
     _apiBase = 'https://api.themoviedb.org/3/search/movie?query=';
 
     async getMovies(title) {
         const response = await fetch(`${this._apiBase}${title}`, this._options);
-        if(!response.ok) throw new Error(`Could not fetch ${response.status}`);
+        if (!response.ok) throw new Error(`Could not fetch ${response.status}`);
         const json = await response.json();
 
-        return json.results
-    }
+        const genresResponse = await fetch(`https://api.themoviedb.org/3/genre/movie/list`, this._options);
+        const genresData = await genresResponse.json();
+        const genresList = genresData.genres;
 
+        const movies = [...json.results]
+
+        for(let i = 0; i < movies.length; i++) {
+            const genreIds = movies[i].genre_ids
+
+            movies[i].genres = genresList.filter(genre => genreIds.includes(genre.id))
+        }
+
+        return movies
+    }
 }
