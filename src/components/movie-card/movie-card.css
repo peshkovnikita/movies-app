@@ -68,20 +68,21 @@
     font-size: 12px;
 }
 
-.info .genres span {
-    padding: 4px;
-    border-radius: 2px;
+ul.genres {
+    list-style: none;
+    display: flex;
+}
+
+.info .genres li {
+    padding: 0 4px;
     margin-right: 8px;
+    border-radius: 2px;
     background-color: #FAFAFA;
     border: 1px solid #D9D9D9;
 }
 
-.info .genres span:last-child {
-    padding: 4px;
-    border-radius: 2px;
+.info .genres li:last-child {
     margin-right: 0;
-    background-color: #FAFAFA;
-    border: 1px solid #D9D9D9;
 }
 
 .desc {
@@ -93,27 +94,16 @@
     margin-left: 18px;
 }
 
-.stars {
-    grid-area: stars;
+.stars-container {
     display: grid;
-    place-items: start;
+    grid-area: stars;
+    place-items: start center;
     padding-right: 18px;
     margin-left: 18px;
 }
 
-.stars-container {
-    height: fit-content;
-}
-
-.star-item {
-    margin-left: 8px;
-    color: #FADB14;
+.ant-rate {
     font-size: 16px;
-    cursor: pointer;
-}
-
-.starred {
-
 }
 
 .star-item:first-child {
@@ -127,11 +117,11 @@
         width: 388px;
         height: 245px;
 
-        grid-template-columns: 70px 1fr 40px;
-        grid-template-rows: 38px 1fr 1fr 1fr;
+        grid-template-columns: 70px 1fr 46px;
+        grid-template-rows: 40px 54px 1fr 50px;
         grid-template-areas:
             'poster title rating'
-            'poster info rating'
+            'poster info info'
             'desc desc desc'
             'stars stars stars';
     }
@@ -158,14 +148,17 @@
     }
 
     .rating {
-        margin-top: 4px;
-        place-items: start center;
+        place-items: end center;
     }
 
-    .stars {
+    .stars-container {
         place-items: center end;
         padding-right: 12px;
         margin-left: 0;
+    }
+
+    .ant-rate {
+        font-size: 18px;
     }
 
     .desc {

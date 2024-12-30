@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import MdApi from './services/md-api.js';
-import MoviesList from './components/movies-list';
+import MdApi from './services/md-api';
+import MoviesList from './components/movies-list/movie-list';
 import { debounce } from 'lodash';
 
 import './App.css'
-import { Tabs, Layout, Flex, Button, Input, Spin, Alert, Pagination } from 'antd';
+import { Tabs, Layout, Flex, Input, Spin, Alert, Pagination } from 'antd';
 const { Header, Content, Footer } = Layout;
 
 export default class App extends Component {
@@ -12,7 +12,7 @@ export default class App extends Component {
 
     state = {
         movieList: null,
-        moviesCounter: 0,
+        moviesFlag: 0,
         paginatedMovies: null,
         isLoading: false,
         error: false,
@@ -23,7 +23,7 @@ export default class App extends Component {
         this.setState(() => {
             return {
                 movieList: null,
-                moviesCounter: 0,
+                moviesFlag: 0,
                 paginatedMovies: null,
                 isLoading: false,
                 error: false,
@@ -35,6 +35,7 @@ export default class App extends Component {
     onSearchChange = (e) => {
         if(e.target.value.trim()) {
             this.updateMovies(e.target.value.trim())
+                .catch(e => console.error(e))
             this.setState({ isLoading: true })
         } else {
             this.onClear()
@@ -45,7 +46,7 @@ export default class App extends Component {
 
     paginateMovies = (arr, size) => {
         const initial = [...arr]
-        const result = [null]
+        const result = []
         for (let i = 0; i < initial.length; i += size) {
             result.push(initial.slice(i, i + size))
         }
@@ -58,8 +59,8 @@ export default class App extends Component {
             if(list.length) {
                 const paginatedMovies = this.paginateMovies(list, 6)
                 this.setState({
-                    movieList: paginatedMovies[1],
-                    moviesCounter: list.length,
+                    movieList: paginatedMovies[0],
+                    moviesFlag: list.length,
                     paginatedMovies: paginatedMovies,
                     isLoading: false
                 });
@@ -68,7 +69,7 @@ export default class App extends Component {
                 this.setState(() => {
                     return {
                         movieList: null,
-                        moviesCounter: 'not found',
+                        moviesFlag: -1,
                         isLoading: false,
                     }
                 });
@@ -86,7 +87,7 @@ export default class App extends Component {
         const paginatedMovies = this.state.paginatedMovies
         this.setState({
             currentPage: page,
-            movieList: paginatedMovies[page]
+            movieList: paginatedMovies[page-1]
         })
     }
 
@@ -95,11 +96,17 @@ export default class App extends Component {
     }
 
     render() {
-        const { movieList ,isLoading, error, moviesCounter, currentPage } = this.state
+        const { movieList ,isLoading, error, moviesFlag, currentPage } = this.state
 
         const spinner = isLoading ? <Spin size='large'></Spin> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
-        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesCounter = { moviesCounter }/> : null;
+        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag }/> : null;
+        const pagination = moviesFlag > 0
+            ? <Pagination align='center'
+                          current={currentPage}
+                          total={moviesFlag}
+                          defaultPageSize={6}
+                          onChange={this.onPageChange} /> : null
 
         return (
             <Layout className='layout'>
@@ -114,16 +121,14 @@ export default class App extends Component {
                 </Header>
                 <Content className='main'>
                     <Flex className='cards-container' justify='center' >
-                        {spinner}
-                        {content}
-                        {alertWarning}
+                        { spinner }
+                        { content }
+                        { alertWarning }
                     </Flex>
                 </Content>
-                {Number(moviesCounter)
-                    ? <Footer>
-                        <Pagination align="center" current={currentPage} total={moviesCounter} defaultPageSize={6} onChange={this.onPageChange}/>
-                      </Footer>
-                    : null}
+                <Footer>
+                    { pagination }
+                </Footer>
             </Layout>
         )
     }

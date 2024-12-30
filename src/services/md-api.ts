@@ -8,8 +8,6 @@ export default class MdApi {
         }
     };
 
-    _apiKey = 'ef929c23e2234c286bc0be2f6f6aeb2d';
-
     _apiBase = 'https://api.themoviedb.org/3/search/movie?query=';
 
     async getMovies(title) {

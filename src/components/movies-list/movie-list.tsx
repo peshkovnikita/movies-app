@@ -1,25 +1,25 @@
 import React, {Component} from 'react';
-import MovieCard from '../movie-card/movie-card.jsx';
-import {Alert, Button} from "antd";
+import MovieCard from '../movie-card/movie-card';
+import { Alert } from "antd";
 
 export default class MovieList extends Component{
 
     state = {
         list: this.props.moviesData,
-        counter: this.props.moviesCounter
+        flag: this.props.moviesFlag
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if(this.props.moviesData !== prevProps.moviesData || this.props.moviesCounter !== prevProps.moviesCounter) {
+        if(this.props.moviesData !== prevProps.moviesData || this.props.moviesFlag !== prevProps.moviesFlag) {
             this.setState({
                 list: this.props.moviesData,
-                counter: this.props.moviesCounter
+                flag: this.props.moviesFlag
             })
         }
     }
 
     render() {
-        const { list, counter } = this.state;
+        const { list, flag } = this.state;
         const alertInfo = <Alert message='Use search to find a movie' type='info' />;
         const alertNotFound = <Alert message='Movie not found' type='error' />;
 
@@ -29,7 +29,7 @@ export default class MovieList extends Component{
 
         return(
             <>
-                { counter === 'not found' ? alertNotFound : counter > 0 ? movies : alertInfo }
+                { flag < 0 ? alertNotFound : flag > 0 ? movies : alertInfo }
             </>
         );
     }
