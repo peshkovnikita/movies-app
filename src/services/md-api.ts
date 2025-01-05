@@ -1,6 +1,6 @@
 export default class MdApi {
 
-    _options = {
+    private options = {
         method: 'GET',
         headers: {
             accept: 'application/json',
@@ -8,14 +8,14 @@ export default class MdApi {
         }
     };
 
-    _apiBase = 'https://api.themoviedb.org/3/search/movie?query=';
+    private apiBase = 'https://api.themoviedb.org/3/search/movie?query=';
 
     async getMovies(title) {
-        const response = await fetch(`${this._apiBase}${title}`, this._options);
+        const response = await fetch(`${this.apiBase}${title}`, this.options);
         if (!response.ok) throw new Error(`Could not fetch ${response.status}`);
         const json = await response.json();
 
-        const genresResponse = await fetch(`https://api.themoviedb.org/3/genre/movie/list`, this._options);
+        const genresResponse = await fetch(`https://api.themoviedb.org/3/genre/movie/list`, this.options);
         const genresData = await genresResponse.json();
         const genresList = genresData.genres;
 

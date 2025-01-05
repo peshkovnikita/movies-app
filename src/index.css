@@ -11,13 +11,6 @@
 
 @media (max-width: 1010px) {
   #root{
-    position: static;
     width: 100vw;
-  }
-}
-
-@media (max-width: 430px) {
-  #root {
-    width: 430px;
   }
 }

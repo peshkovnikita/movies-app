@@ -1,15 +1,29 @@
 import React, {Component} from 'react';
 import MovieCard from '../movie-card/movie-card';
-import { Alert } from "antd";
+import { Alert } from 'antd';
 
-export default class MovieList extends Component{
+interface MovieInfo {
+    id: number
+}
 
-    state = {
+interface MovieListProps {
+    moviesData: MovieInfo[] | null;
+    moviesFlag: number;
+}
+
+interface MovieListState {
+    list: MovieInfo[] | null;
+    flag: number;
+}
+
+export default class MovieList extends Component<MovieListProps, MovieListState>{
+
+    state: MovieListState = {
         list: this.props.moviesData,
         flag: this.props.moviesFlag
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(prevProps: MovieListProps): void {
         if(this.props.moviesData !== prevProps.moviesData || this.props.moviesFlag !== prevProps.moviesFlag) {
             this.setState({
                 list: this.props.moviesData,
@@ -24,7 +38,7 @@ export default class MovieList extends Component{
         const alertNotFound = <Alert message='Movie not found' type='error' />;
 
         const movies = list
-            ? list.map(movieInfo => <MovieCard { ...movieInfo } key={ movieInfo.id }/>)
+            ? list.map(movieInfo => <MovieCard { ...movieInfo } key={ Date.now() + Number(Math.random().toFixed(4)) }/>)
             : null;
 
         return(

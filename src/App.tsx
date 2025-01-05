@@ -1,42 +1,53 @@
-import React, { Component } from 'react';
+import React, { Component, ChangeEvent } from 'react';
+import { debounce } from 'lodash';
 import MdApi from './services/md-api';
 import MoviesList from './components/movies-list/movie-list';
-import { debounce } from 'lodash';
-
 import './App.css'
+
 import { Tabs, Layout, Flex, Input, Spin, Alert, Pagination } from 'antd';
 const { Header, Content, Footer } = Layout;
 
-export default class App extends Component {
-    moviesAPI = new MdApi();
+interface Movies {
+    genre_ids: number[]
+    genres?: {id: number, name: string}[]
+    title: string
+}
 
-    state = {
+interface AppState {
+    movieList: Movies[] | null
+    moviesFlag: number
+    paginatedMovies: Movies[][] | null
+    isLoading: boolean
+    error: boolean
+    currentPage: number
+}
+
+interface MdApi {
+    getMovies(keyword: string): Promise<Movies[]>
+}
+
+export default class App extends Component<object, AppState> {
+
+    private moviesAPI:MdApi = new MdApi();
+
+    private initialState: AppState = {
         movieList: null,
         moviesFlag: 0,
         paginatedMovies: null,
         isLoading: false,
         error: false,
         currentPage: 1
-    }
+    };
+
+    state = { ...this.initialState }
 
     onClear() {
-        this.setState(() => {
-            return {
-                movieList: null,
-                moviesFlag: 0,
-                paginatedMovies: null,
-                isLoading: false,
-                error: false,
-                currentPage: 1
-            }
-        })
+        this.setState({ ...this.initialState })
     }
 
-    onSearchChange = (e) => {
+    onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
         if(e.target.value.trim()) {
             this.updateMovies(e.target.value.trim())
-                .catch(e => console.error(e))
-            this.setState({ isLoading: true })
         } else {
             this.onClear()
         }
@@ -44,16 +55,18 @@ export default class App extends Component {
 
     debounceOnChange = debounce(this.onSearchChange, 700)
 
-    paginateMovies = (arr, size) => {
+    paginateMovies = (arr: Movies[], size: number): Movies[][] => {
         const initial = [...arr]
-        const result = []
+        const result: Movies[][] = []
         for (let i = 0; i < initial.length; i += size) {
             result.push(initial.slice(i, i + size))
         }
         return result
     }
 
-    async updateMovies(keyword) {
+    async updateMovies(keyword: string): Promise<void> {
+        this.setState({ isLoading: true })
+
         try {
             const list = await this.moviesAPI.getMovies(keyword);
             if(list.length) {
@@ -61,17 +74,15 @@ export default class App extends Component {
                 this.setState({
                     movieList: paginatedMovies[0],
                     moviesFlag: list.length,
-                    paginatedMovies: paginatedMovies,
+                    paginatedMovies,
                     isLoading: false
                 });
             }
             else {
-                this.setState(() => {
-                    return {
-                        movieList: null,
-                        moviesFlag: -1,
-                        isLoading: false,
-                    }
+                this.setState({
+                    movieList: null,
+                    moviesFlag: -1,
+                    isLoading: false,
                 });
             }
         }
@@ -83,24 +94,24 @@ export default class App extends Component {
         }
     }
 
-    onPageChange = (page) => {
-        const paginatedMovies = this.state.paginatedMovies
+    onPageChange = (page: number) => {
+        const { paginatedMovies } = this.state
         this.setState({
             currentPage: page,
-            movieList: paginatedMovies[page-1]
+            movieList: paginatedMovies[page - 1]
         })
     }
 
-    onTabSwitch = (key) => {
+    onTabSwitch = (key: string) => {
         console.log(key)
     }
 
     render() {
         const { movieList ,isLoading, error, moviesFlag, currentPage } = this.state
 
-        const spinner = isLoading ? <Spin size='large'></Spin> : null;
+        const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
-        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag }/> : null;
+        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag } /> : null;
         const pagination = moviesFlag > 0
             ? <Pagination align='center'
                           current={currentPage}
@@ -113,11 +124,11 @@ export default class App extends Component {
                 <Tabs
                     defaultActiveKey='1'
                     onChange={this.onTabSwitch}
-                    items={ [{key: '1', label: 'Search'}, {key: '2', label: 'Rated'}] }
-                    style={ { display: 'grid', placeItems: 'center'} }
+                    items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
+                    style={{ display: 'grid', placeItems: 'center' }}
                 />
                 <Header className='header'>
-                    <Input placeholder='Type for searching...' allowClear onChange={this.debounceOnChange} onClear={this.onClear}/>
+                    <Input placeholder='Type for searching...' onChange={this.debounceOnChange} onClear={this.onClear} allowClear autoFocus/>
                 </Header>
                 <Content className='main'>
                     <Flex className='cards-container' justify='center' >

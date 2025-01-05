@@ -1,11 +1,10 @@
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 body {
-    height: 100vh;
     font-family: Inter, sans-serif;
 }
 
@@ -55,6 +54,7 @@ body {
 
 .ant-layout-footer {
     background-color: #ffffff;
+    padding: 24px 0 24px 0;
 }
 
 /* Media */
