@@ -7,30 +7,30 @@ import './App.css'
 import { Tabs, Layout, Flex, Input, Spin, Alert, Pagination } from 'antd';
 const { Header, Content, Footer } = Layout;
 
-interface Movies {
+interface IMovies {
     genre_ids: number[]
     genres?: {id: number, name: string}[]
     title: string
 }
 
-interface AppState {
-    movieList: Movies[] | null
+interface IAppState {
+    movieList: IMovies[] | null
     moviesFlag: number
-    paginatedMovies: Movies[][] | null
+    paginatedMovies: IMovies[][] | null
     isLoading: boolean
     error: boolean
     currentPage: number
 }
 
-interface MdApi {
-    getMovies(keyword: string): Promise<Movies[]>
+interface IMdApi {
+    getMovies(keyword: string): Promise<IMovies[]>
 }
 
-export default class App extends Component<object, AppState> {
+export default class App extends Component<object, IAppState> {
 
-    private moviesAPI:MdApi = new MdApi();
+    private moviesAPI: IMdApi = new MdApi();
 
-    private initialState: AppState = {
+    private initialState: IAppState = {
         movieList: null,
         moviesFlag: 0,
         paginatedMovies: null,
@@ -55,9 +55,9 @@ export default class App extends Component<object, AppState> {
 
     debounceOnChange = debounce(this.onSearchChange, 700)
 
-    paginateMovies = (arr: Movies[], size: number): Movies[][] => {
+    paginateMovies = (arr: IMovies[], size: number): IMovies[][] => {
         const initial = [...arr]
-        const result: Movies[][] = []
+        const result: IMovies[][] = []
         for (let i = 0; i < initial.length; i += size) {
             result.push(initial.slice(i, i + size))
         }
@@ -117,17 +117,18 @@ export default class App extends Component<object, AppState> {
                           current={currentPage}
                           total={moviesFlag}
                           defaultPageSize={6}
-                          onChange={this.onPageChange} /> : null
+                          onChange={this.onPageChange}
+              /> : null
 
         return (
             <Layout className='layout'>
-                <Tabs
-                    defaultActiveKey='1'
-                    onChange={this.onTabSwitch}
-                    items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
-                    style={{ display: 'grid', placeItems: 'center' }}
-                />
                 <Header className='header'>
+                    <Tabs
+                        defaultActiveKey='1'
+                        onChange={this.onTabSwitch}
+                        items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
+                        style={{ display: 'grid', placeItems: 'center' }}
+                    />
                     <Input placeholder='Type for searching...' onChange={this.debounceOnChange} onClear={this.onClear} allowClear autoFocus/>
                 </Header>
                 <Content className='main'>
