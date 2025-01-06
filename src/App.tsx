@@ -1,16 +1,28 @@
-import React, { Component, ChangeEvent } from 'react';
+import { Component, ChangeEvent } from 'react';
 import { debounce } from 'lodash';
 import MdApi from './services/md-api';
 import MoviesList from './components/movies-list/movie-list';
 import './App.css'
 
+import { GenresProvider } from './services/genres-context';
+
 import { Tabs, Layout, Flex, Input, Spin, Alert, Pagination } from 'antd';
 const { Header, Content, Footer } = Layout;
 
+const moviesAPI: IMdApi = new MdApi();
+
+// При запуске вашего приложения создаем новую гостевую сессию по апи
+// Разделяем приложение на 2 таба - Search и Rated, в табе Rated выводим только список тех фильмов, которые оценивали.
+// Компонент Rate. Если вы не голосовали за фильм - все звезды должны быть пустыми, если голосовали - тот рейтинг, что вы проставили фильму.
+
 interface IMovies {
     genre_ids: number[]
-    genres?: {id: number, name: string}[]
     title: string
+}
+
+interface IGenre {
+    id: number,
+    name: string
 }
 
 interface IAppState {
@@ -28,18 +40,33 @@ interface IMdApi {
 
 export default class App extends Component<object, IAppState> {
 
-    private moviesAPI: IMdApi = new MdApi();
-
     private initialState: IAppState = {
         movieList: null,
         moviesFlag: 0,
         paginatedMovies: null,
-        isLoading: false,
+        isLoading: true,
         error: false,
         currentPage: 1
-    };
+    }
+
+    private genresList: IGenre[] = null
 
     state = { ...this.initialState }
+
+    componentDidMount() {
+        this.getGenres()
+    }
+
+    async getGenres() {
+        try {
+            this.genresList = await moviesAPI.getAllGenres()
+            this.setState({ isLoading: false })
+        }
+        catch (err) {
+            this.genresList = null
+            this.setState({ error: true, isLoading: false })
+        }
+    }
 
     onClear() {
         this.setState({ ...this.initialState })
@@ -68,7 +95,7 @@ export default class App extends Component<object, IAppState> {
         this.setState({ isLoading: true })
 
         try {
-            const list = await this.moviesAPI.getMovies(keyword);
+            const list = await moviesAPI.getMovies(keyword);
             if(list.length) {
                 const paginatedMovies = this.paginateMovies(list, 6)
                 this.setState({
@@ -107,7 +134,7 @@ export default class App extends Component<object, IAppState> {
     }
 
     render() {
-        const { movieList ,isLoading, error, moviesFlag, currentPage } = this.state
+        const { movieList, isLoading, error, moviesFlag, currentPage } = this.state
 
         const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
@@ -122,25 +149,27 @@ export default class App extends Component<object, IAppState> {
 
         return (
             <Layout className='layout'>
-                <Header className='header'>
-                    <Tabs
-                        defaultActiveKey='1'
-                        onChange={this.onTabSwitch}
-                        items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
-                        style={{ display: 'grid', placeItems: 'center' }}
-                    />
-                    <Input placeholder='Type for searching...' onChange={this.debounceOnChange} onClear={this.onClear} allowClear autoFocus/>
-                </Header>
-                <Content className='main'>
-                    <Flex className='cards-container' justify='center' >
-                        { spinner }
-                        { content }
-                        { alertWarning }
-                    </Flex>
-                </Content>
-                <Footer>
-                    { pagination }
-                </Footer>
+                <GenresProvider value={this.genresList}>
+                    <Header className='header'>
+                        <Tabs
+                            defaultActiveKey='1'
+                            onChange={this.onTabSwitch}
+                            items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
+                            style={{ display: 'grid', placeItems: 'center' }}
+                        />
+                        <Input placeholder='Type for searching...' onChange={this.debounceOnChange} onClear={this.onClear} allowClear autoFocus disabled={isLoading || error}/>
+                    </Header>
+                    <Content className='main'>
+                        <Flex className='cards-container' justify='center' >
+                            { spinner }
+                            { content }
+                            { alertWarning }
+                        </Flex>
+                    </Content>
+                    <Footer>
+                        { pagination }
+                    </Footer>
+                </GenresProvider>
             </Layout>
         )
     }

@@ -15,18 +15,19 @@ export default class MdApi {
         if (!response.ok) throw new Error(`Could not fetch ${response.status}`);
         const json = await response.json();
 
+        // for(let i = 0; i < movies.length; i++) {
+        //     const genreIds = movies[i].genre_ids
+        //
+        //     movies[i].genres = genresList.filter(genre => genreIds.includes(genre.id))
+        // }
+
+        return json.results
+    }
+
+    async getAllGenres() {
         const genresResponse = await fetch(`https://api.themoviedb.org/3/genre/movie/list`, this.options);
         const genresData = await genresResponse.json();
-        const genresList = genresData.genres;
 
-        const movies = [...json.results]
-
-        for(let i = 0; i < movies.length; i++) {
-            const genreIds = movies[i].genre_ids
-
-            movies[i].genres = genresList.filter(genre => genreIds.includes(genre.id))
-        }
-
-        return movies
+        return genresData.genres
     }
 }
