@@ -11,7 +11,6 @@ const { Header, Content, Footer } = Layout;
 
 const moviesAPI: IMdApi = new MdApi();
 
-// При запуске вашего приложения создаем новую гостевую сессию по апи
 // Разделяем приложение на 2 таба - Search и Rated, в табе Rated выводим только список тех фильмов, которые оценивали.
 // Компонент Rate. Если вы не голосовали за фильм - все звезды должны быть пустыми, если голосовали - тот рейтинг, что вы проставили фильму.
 
@@ -26,12 +25,15 @@ interface IGenre {
 }
 
 interface IAppState {
+    sessionId: string | null
     movieList: IMovies[] | null
     moviesFlag: number
     paginatedMovies: IMovies[][] | null
     isLoading: boolean
     error: boolean
-    currentPage: number
+    currentPage: number,
+    ratedList: number[]
+    tab: 'search' | 'rating'
 }
 
 interface IMdApi {
@@ -41,23 +43,37 @@ interface IMdApi {
 export default class App extends Component<object, IAppState> {
 
     private initialState: IAppState = {
+        sessionId: null,
         movieList: null,
         moviesFlag: 0,
         paginatedMovies: null,
         isLoading: true,
         error: false,
-        currentPage: 1
+        currentPage: 1,
+        ratedList: [1, 2, 3],
+        tab: 'search'
     }
 
-    private genresList: IGenre[] = null
+    private genresList: IGenre[] | null = null
 
     state = { ...this.initialState }
 
     componentDidMount() {
-        this.getGenres()
+        this.initializeData();
     }
 
-    async getGenres() {
+    async initializeData() {
+        try {
+            const sessionId = await moviesAPI.createSession();
+            this.setState({ sessionId: sessionId });
+            await this.loadGenres();
+        } catch (error) {
+            console.error('Initialization failed:', error);
+            this.setState({ error: true, isLoading: false });
+        }
+    }
+
+    async loadGenres() {
         try {
             this.genresList = await moviesAPI.getAllGenres()
             this.setState({ isLoading: false })
@@ -69,15 +85,12 @@ export default class App extends Component<object, IAppState> {
     }
 
     onClear() {
-        this.setState({ ...this.initialState })
+        this.setState({ ...this.initialState, isLoading: false })
     }
 
     onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if(e.target.value.trim()) {
-            this.updateMovies(e.target.value.trim())
-        } else {
-            this.onClear()
-        }
+        if(e.target.value.trim()) this.updateMovies(e.target.value.trim())
+        else this.onClear()
     }
 
     debounceOnChange = debounce(this.onSearchChange, 700)
@@ -121,6 +134,16 @@ export default class App extends Component<object, IAppState> {
         }
     }
 
+    async getRatedList(sessionId) {
+        try {
+            console.log(this.state.sessionId)
+            const list = await moviesAPI.getRatedMovies(sessionId)
+            console.log(list)
+        } catch (e) {
+            console.error(e.message)
+        }
+    }
+
     onPageChange = (page: number) => {
         const { paginatedMovies } = this.state
         this.setState({
@@ -130,39 +153,55 @@ export default class App extends Component<object, IAppState> {
     }
 
     onTabSwitch = (key: string) => {
-        console.log(key)
+        if(key === '1') this.setState({ tab: 'search' })
+        else {
+            this.setState({ tab: 'rating' })
+        }
     }
 
     render() {
-        const { movieList, isLoading, error, moviesFlag, currentPage } = this.state
+        const { movieList, isLoading, error, moviesFlag, currentPage, sessionId, tab } = this.state
 
         const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
-        const content = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag } /> : null;
-        const pagination = moviesFlag > 0
+        const contentSearch = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag } /> : null;
+        //const contentRating = <MoviesList moviesData={ ratedList } moviesFlag = { moviesFlag } />;
+        const contentRating = <button type="button" onClick={ () => this.getRatedList(sessionId) }>List</button>;
+
+        const searchInput = tab === 'search'
+            ? <Input placeholder='Type for searching...'
+                     onChange={this.debounceOnChange}
+                     onClear={this.onClear}
+                     allowClear disabled={isLoading || error}/>
+            : null
+
+        const pagination = moviesFlag > 0 && tab === 'search'
             ? <Pagination align='center'
                           current={currentPage}
                           total={moviesFlag}
                           defaultPageSize={6}
-                          onChange={this.onPageChange}
-              /> : null
+                          onChange={this.onPageChange}/>
+            : null
+
+        const providerProps = {genresList: this.genresList, sessionId: sessionId}
 
         return (
             <Layout className='layout'>
-                <GenresProvider value={this.genresList}>
+                <GenresProvider value={ providerProps }>
                     <Header className='header'>
                         <Tabs
                             defaultActiveKey='1'
-                            onChange={this.onTabSwitch}
+                            onChange={ this.onTabSwitch }
                             items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
                             style={{ display: 'grid', placeItems: 'center' }}
+                            // destroyInactiveTabPane
                         />
-                        <Input placeholder='Type for searching...' onChange={this.debounceOnChange} onClear={this.onClear} allowClear autoFocus disabled={isLoading || error}/>
+                        { searchInput }
                     </Header>
                     <Content className='main'>
                         <Flex className='cards-container' justify='center' >
                             { spinner }
-                            { content }
+                            { tab === 'search' ? contentSearch : contentRating }
                             { alertWarning }
                         </Flex>
                     </Content>
