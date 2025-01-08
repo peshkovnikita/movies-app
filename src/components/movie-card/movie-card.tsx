@@ -1,4 +1,4 @@
-import { Component, FC } from 'react';
+import { Component } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Rate } from 'antd';
 import './movie-card.css';
@@ -11,13 +11,14 @@ interface IGenre {
 }
 
 interface IMovieCardProps {
-    id: number,
-    title: string;
-    poster_path: string | null;
-    vote_average: number;
-    release_date: string | null;
-    overview: string | null;
-    genre_ids: number[];
+    id: number
+    title: string
+    poster_path: string | null
+    vote_average: number
+    release_date: string | null
+    overview: string | null
+    genre_ids: number[],
+    rating?: number | unknown
 }
 
 export default class MovieCard extends Component<IMovieCardProps, object> {
@@ -27,7 +28,7 @@ export default class MovieCard extends Component<IMovieCardProps, object> {
     private moviesApi = new MdApi()
 
     state = {
-        rating: 0
+        rating: this.props.rating
     }
 
     sliceText = (str: string, length: number): string => {
@@ -48,7 +49,7 @@ export default class MovieCard extends Component<IMovieCardProps, object> {
             this.setState({ rating: value })
         }
         catch (err) {
-
+            console.error(err.message)
         }
     }
 

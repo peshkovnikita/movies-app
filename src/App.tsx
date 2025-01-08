@@ -11,9 +11,6 @@ const { Header, Content, Footer } = Layout;
 
 const moviesAPI: IMdApi = new MdApi();
 
-// Разделяем приложение на 2 таба - Search и Rated, в табе Rated выводим только список тех фильмов, которые оценивали.
-// Компонент Rate. Если вы не голосовали за фильм - все звезды должны быть пустыми, если голосовали - тот рейтинг, что вы проставили фильму.
-
 interface IMovies {
     genre_ids: number[]
     title: string
@@ -25,15 +22,15 @@ interface IGenre {
 }
 
 interface IAppState {
-    sessionId: string | null
-    movieList: IMovies[] | null
-    moviesFlag: number
-    paginatedMovies: IMovies[][] | null
-    isLoading: boolean
-    error: boolean
-    currentPage: number,
-    ratedList: number[]
-    tab: 'search' | 'rating'
+    sessionId?: string | null
+    movieList?: IMovies[] | null
+    totalMovies?: number
+    paginatedMovies?: IMovies[][] | null
+    isLoading?: boolean
+    error?: boolean
+    currentPage?: number,
+    ratedList?: IMovies[] | null
+    tab?: 'search' | 'rating'
 }
 
 interface IMdApi {
@@ -42,21 +39,19 @@ interface IMdApi {
 
 export default class App extends Component<object, IAppState> {
 
-    private initialState: IAppState = {
+    private genresList: IGenre[] | null = null
+
+    state: IAppState = {
         sessionId: null,
         movieList: null,
-        moviesFlag: 0,
+        totalMovies: 0,
         paginatedMovies: null,
         isLoading: true,
         error: false,
         currentPage: 1,
-        ratedList: [1, 2, 3],
+        ratedList: null,
         tab: 'search'
     }
-
-    private genresList: IGenre[] | null = null
-
-    state = { ...this.initialState }
 
     componentDidMount() {
         this.initializeData();
@@ -64,12 +59,12 @@ export default class App extends Component<object, IAppState> {
 
     async initializeData() {
         try {
-            const sessionId = await moviesAPI.createSession();
-            this.setState({ sessionId: sessionId });
-            await this.loadGenres();
+            await this.loadGenres()
+            const sessionId = await moviesAPI.createSession()
+            this.setState({ sessionId: sessionId })
         } catch (error) {
-            console.error('Initialization failed:', error);
-            this.setState({ error: true, isLoading: false });
+            console.error('Initialization failed:', error)
+            this.setState({ error: true, isLoading: false })
         }
     }
 
@@ -85,7 +80,15 @@ export default class App extends Component<object, IAppState> {
     }
 
     onClear() {
-        this.setState({ ...this.initialState, isLoading: false })
+        this.setState({
+            movieList: null,
+            totalMovies: 0,
+            paginatedMovies: null,
+            isLoading: false,
+            error: false,
+            currentPage: 1,
+            tab: 'search'
+        })
     }
 
     onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -104,27 +107,31 @@ export default class App extends Component<object, IAppState> {
         return result
     }
 
+    compareRating(movies, ratedMovies): IMovies[] {
+        return movies.map(movie => {
+            const ratedMovie = ratedMovies.find(rm => rm.id === movie.id)
+            return ratedMovie ? { ...movie, rating: ratedMovie.rating } : movie
+        })
+    }
+
     async updateMovies(keyword: string): Promise<void> {
         this.setState({ isLoading: true })
 
         try {
-            const list = await moviesAPI.getMovies(keyword);
+            let list = await moviesAPI.getMovies(keyword);
             if(list.length) {
+                if(this.state.ratedList) {
+                    list = this.compareRating(list, this.state.ratedList)
+                }
                 const paginatedMovies = this.paginateMovies(list, 6)
                 this.setState({
                     movieList: paginatedMovies[0],
-                    moviesFlag: list.length,
+                    totalMovies: list.length,
                     paginatedMovies,
                     isLoading: false
-                });
+                })
             }
-            else {
-                this.setState({
-                    movieList: null,
-                    moviesFlag: -1,
-                    isLoading: false,
-                });
-            }
+            else this.setState({ isLoading: false })
         }
         catch (err) {
             this.setState({
@@ -135,13 +142,8 @@ export default class App extends Component<object, IAppState> {
     }
 
     async getRatedList(sessionId) {
-        try {
-            console.log(this.state.sessionId)
-            const list = await moviesAPI.getRatedMovies(sessionId)
-            console.log(list)
-        } catch (e) {
-            console.error(e.message)
-        }
+        const list = await moviesAPI.getRatedMovies(sessionId)
+        if(list) this.setState({ ratedList: list })
     }
 
     onPageChange = (page: number) => {
@@ -155,18 +157,18 @@ export default class App extends Component<object, IAppState> {
     onTabSwitch = (key: string) => {
         if(key === '1') this.setState({ tab: 'search' })
         else {
-            this.setState({ tab: 'rating' })
+            this.setState({ tab: 'rating', paginatedMovies: null, movieList: null, currentPage: 1 })
+            this.getRatedList(this.state.sessionId)
         }
     }
 
     render() {
-        const { movieList, isLoading, error, moviesFlag, currentPage, sessionId, tab } = this.state
+        const { movieList, isLoading, error, totalMovies, currentPage, sessionId, tab, ratedList } = this.state
 
         const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
-        const contentSearch = !error && !isLoading ? <MoviesList moviesData={ movieList } moviesFlag = { moviesFlag } /> : null;
-        //const contentRating = <MoviesList moviesData={ ratedList } moviesFlag = { moviesFlag } />;
-        const contentRating = <button type="button" onClick={ () => this.getRatedList(sessionId) }>List</button>;
+        const content = !error && !isLoading
+            ? <MoviesList moviesData={ tab === 'search' ? movieList : ratedList } /> : null
 
         const searchInput = tab === 'search'
             ? <Input placeholder='Type for searching...'
@@ -175,10 +177,10 @@ export default class App extends Component<object, IAppState> {
                      allowClear disabled={isLoading || error}/>
             : null
 
-        const pagination = moviesFlag > 0 && tab === 'search'
+        const pagination = movieList && tab === 'search'
             ? <Pagination align='center'
                           current={currentPage}
-                          total={moviesFlag}
+                          total={totalMovies}
                           defaultPageSize={6}
                           onChange={this.onPageChange}/>
             : null
@@ -194,14 +196,14 @@ export default class App extends Component<object, IAppState> {
                             onChange={ this.onTabSwitch }
                             items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
                             style={{ display: 'grid', placeItems: 'center' }}
-                            // destroyInactiveTabPane
+                            destroyInactiveTabPane
                         />
                         { searchInput }
                     </Header>
                     <Content className='main'>
                         <Flex className='cards-container' justify='center' >
                             { spinner }
-                            { tab === 'search' ? contentSearch : contentRating }
+                            { content }
                             { alertWarning }
                         </Flex>
                     </Content>
