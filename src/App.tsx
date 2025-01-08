@@ -22,7 +22,6 @@ interface IGenre {
 }
 
 interface IAppState {
-    sessionId?: string | null
     movieList?: IMovies[] | null
     totalMovies?: number
     paginatedMovies?: IMovies[][] | null
@@ -42,7 +41,6 @@ export default class App extends Component<object, IAppState> {
     private genresList: IGenre[] | null = null
 
     state: IAppState = {
-        sessionId: null,
         movieList: null,
         totalMovies: 0,
         paginatedMovies: null,
@@ -57,11 +55,23 @@ export default class App extends Component<object, IAppState> {
         this.initializeData();
     }
 
+    async createSession() {
+        const [sessionId, expires] = await moviesAPI.createSession()
+        const expireDate = new Date(expires)
+        localStorage.setItem('sessionId', `${sessionId}`)
+        localStorage.setItem('expires', `${expireDate.getTime()}`)
+    }
+
     async initializeData() {
         try {
+            const timestamp = Date.now()
             await this.loadGenres()
-            const sessionId = await moviesAPI.createSession()
-            this.setState({ sessionId: sessionId })
+            this.getRatedList(localStorage.getItem('sessionId'))
+            if(!localStorage.getItem('sessionId')) await this.createSession()
+            if(timestamp > localStorage.getItem('expires')) {
+                localStorage.clear()
+                await this.createSession()
+            }
         } catch (error) {
             console.error('Initialization failed:', error)
             this.setState({ error: true, isLoading: false })
@@ -116,7 +126,7 @@ export default class App extends Component<object, IAppState> {
 
     async updateMovies(keyword: string): Promise<void> {
         this.setState({ isLoading: true })
-
+        this.getRatedList(localStorage.getItem('sessionId'))
         try {
             let list = await moviesAPI.getMovies(keyword);
             if(list.length) {
@@ -157,13 +167,18 @@ export default class App extends Component<object, IAppState> {
     onTabSwitch = (key: string) => {
         if(key === '1') this.setState({ tab: 'search' })
         else {
-            this.setState({ tab: 'rating', paginatedMovies: null, movieList: null, currentPage: 1 })
-            this.getRatedList(this.state.sessionId)
+            this.getRatedList(localStorage.getItem('sessionId'))
+            this.setState({
+                tab: 'rating',
+                paginatedMovies: null,
+                movieList: null,
+                currentPage: 1
+            })
         }
     }
 
     render() {
-        const { movieList, isLoading, error, totalMovies, currentPage, sessionId, tab, ratedList } = this.state
+        const { movieList, isLoading, error, totalMovies, currentPage, tab, ratedList } = this.state
 
         const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
@@ -185,7 +200,10 @@ export default class App extends Component<object, IAppState> {
                           onChange={this.onPageChange}/>
             : null
 
-        const providerProps = {genresList: this.genresList, sessionId: sessionId}
+        const providerProps = {
+            genresList: this.genresList,
+            sessionId: localStorage.getItem('sessionId')
+        }
 
         return (
             <Layout className='layout'>
