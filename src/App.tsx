@@ -1,5 +1,6 @@
 import { Component, ChangeEvent } from 'react';
 import { debounce } from 'lodash';
+import { parse } from 'date-fns';
 import MdApi from './services/md-api';
 import MoviesList from './components/movies-list/movie-list';
 import './App.css'
@@ -56,17 +57,11 @@ export default class App extends Component<object, IAppState> {
     }
 
     async createSession() {
-        return await moviesAPI.createSession()
-    }
+        const [sessionId, expires] = await moviesAPI.createSession()
+        const expireDate = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date())
 
-    isLocalStorageAvailable() {
-        try {
-            localStorage.setItem('test', 'test');
-            localStorage.removeItem('test');
-            return true;
-        } catch (e) {
-            alert('LocalStorage unavailable');
-        }
+        localStorage.setItem('sessionId', `${sessionId}`)
+        localStorage.setItem('expires', `${expireDate.getTime()}`)
     }
 
     async initializeData() {
@@ -74,29 +69,16 @@ export default class App extends Component<object, IAppState> {
             const timestamp = Date.now()
             await this.loadGenres()
 
-            if(this.isLocalStorageAvailable()) {
-                if(!localStorage.getItem('sessionId')) {
-                    const [sessionId, expires] = await moviesAPI.createSession()
-                    alert(`Expires from server ${expires}`)
-                    const expireDate = new Date(Number(expires))
-                    alert(`Expires new Date() ${expireDate}`)
-                    alert(`Expires getTime() ${expireDate.getTime()}`)
-                    localStorage.setItem('sessionId', `${sessionId}`)
-                    localStorage.setItem('expires', `${expireDate.getTime()}`)
-
-                    await this.getRatedList(localStorage.getItem('sessionId'))
-
-                    alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${localStorage.getItem('expires')}`)
-                }
-
+            if(!localStorage.getItem('sessionId')) await this.createSession()
+            else {
                 if(timestamp > localStorage.getItem('expires')) {
                     localStorage.clear()
                     await this.createSession()
-                    return;
                 }
-
-
+                await this.getRatedList(localStorage.getItem('sessionId'))
             }
+
+            alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${new Date(Number(localStorage.getItem('expires')))}`)
 
         } catch (error) {
             console.error('Initialization failed:', error)
@@ -235,7 +217,6 @@ export default class App extends Component<object, IAppState> {
             <Layout className='layout'>
                 <GenresProvider value={ providerProps }>
                     <Header className='header'>
-
                         <Tabs
                             defaultActiveKey='1'
                             onChange={ this.onTabSwitch }
@@ -243,7 +224,6 @@ export default class App extends Component<object, IAppState> {
                             style={{ display: 'grid', placeItems: 'center' }}
                             destroyInactiveTabPane
                         />
-                        <button type='button' onClick={() => localStorage.clear()} >Clear localStorage</button>
                         { searchInput }
                     </Header>
                     <Content className='main'>
