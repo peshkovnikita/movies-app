@@ -58,26 +58,26 @@ export default class App extends Component<object, IAppState> {
 
     async createSession() {
         const [sessionId, expires] = await moviesAPI.createSession()
-        const expireDate: number = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date()).getTime() - 75480000
+        const expireDate: number = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date()).getTime()
 
         localStorage.setItem('sessionId', `${sessionId}`)
         localStorage.setItem('expires', `${expireDate}`)
-        alert(`Expires: ${ new Date(expireDate) }\n${ localStorage.getItem('expires') }`)
     }
 
     async initializeData() {
         try {
             const timestamp: number = Date.now()
+            const sessionId = localStorage.getItem('sessionId')
             await this.loadGenres()
 
-            if(!localStorage.getItem('sessionId')) await this.createSession()
-            if(timestamp > Number(localStorage.getItem('expires'))) {
-                localStorage.clear()
-                await this.createSession()
+            if(!sessionId) await this.createSession()
+            if(sessionId) {
+                await this.getRatedList(sessionId)
+                if(timestamp > Number(localStorage.getItem('expires'))) {
+                    localStorage.clear()
+                    await this.createSession()
+                }
             }
-
-            alert(`Timestamp: ${ new Date(timestamp) }`)
-
         } catch (error) {
             console.error('Initialization failed:', error)
             this.setState({ error: true, isLoading: false })
@@ -171,7 +171,7 @@ export default class App extends Component<object, IAppState> {
     }
 
     onTabSwitch = (key: string) => {
-        if(key === '1') this.setState({ tab: 'search' })
+        if(key === '1') this.setState({tab: 'search'})
         else {
             this.getRatedList(localStorage.getItem('sessionId'))
             this.setState({
