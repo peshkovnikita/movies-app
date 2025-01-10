@@ -62,16 +62,37 @@ export default class App extends Component<object, IAppState> {
         localStorage.setItem('expires', `${expireDate.getTime()}`)
     }
 
+    isLocalStorageAvailable() {
+        try {
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+            return true;
+        } catch (e) {
+            alert('LocalStorage unavailable');
+        }
+    }
+
     async initializeData() {
         try {
             const timestamp = Date.now()
             await this.loadGenres()
-            this.getRatedList(localStorage.getItem('sessionId'))
-            if(!localStorage.getItem('sessionId')) await this.createSession()
-            if(timestamp > localStorage.getItem('expires')) {
-                localStorage.clear()
-                await this.createSession()
+
+            if(this.isLocalStorageAvailable()) {
+                if(!localStorage.getItem('sessionId')) {
+                    await this.createSession()
+                    return;
+                }
+
+                if(timestamp > localStorage.getItem('expires')) {
+                    localStorage.clear()
+                    await this.createSession()
+                    return;
+                }
+                await this.getRatedList(localStorage.getItem('sessionId'))
+                const expires = Number(localStorage.getItem('expires'))
+                alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${new Date(expires)}`)
             }
+
         } catch (error) {
             console.error('Initialization failed:', error)
             this.setState({ error: true, isLoading: false })
