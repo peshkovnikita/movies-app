@@ -56,10 +56,7 @@ export default class App extends Component<object, IAppState> {
     }
 
     async createSession() {
-        const [sessionId, expires] = await moviesAPI.createSession()
-        const expireDate = new Date(expires)
-        localStorage.setItem('sessionId', `${sessionId}`)
-        localStorage.setItem('expires', `${expireDate.getTime()}`)
+        return await moviesAPI.createSession()
     }
 
     isLocalStorageAvailable() {
@@ -79,8 +76,17 @@ export default class App extends Component<object, IAppState> {
 
             if(this.isLocalStorageAvailable()) {
                 if(!localStorage.getItem('sessionId')) {
-                    await this.createSession()
-                    return;
+                    const [sessionId, expires] = await moviesAPI.createSession()
+                    alert(`Expires from server ${expires}`)
+                    const expireDate = new Date(expires)
+                    alert(`Expires new Date() ${expireDate}`)
+                    alert(`Expires getTime() ${expireDate.getTime()}`)
+                    localStorage.setItem('sessionId', `${sessionId}`)
+                    localStorage.setItem('expires', `${expireDate.getTime()}`)
+
+                    await this.getRatedList(localStorage.getItem('sessionId'))
+
+                    alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${localStorage.getItem('expires')}`)
                 }
 
                 if(timestamp > localStorage.getItem('expires')) {
@@ -88,9 +94,8 @@ export default class App extends Component<object, IAppState> {
                     await this.createSession()
                     return;
                 }
-                await this.getRatedList(localStorage.getItem('sessionId'))
 
-                alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${localStorage.getItem('expires')}`)
+
             }
 
         } catch (error) {
