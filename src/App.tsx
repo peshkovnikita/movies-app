@@ -69,10 +69,10 @@ export default class App extends Component<object, IAppState> {
             const timestamp: number = Date.now()
             const sessionId = localStorage.getItem('sessionId')
             await this.loadGenres()
+            await this.getRatedList(sessionId)
 
             if(!sessionId) await this.createSession()
-            if(sessionId) {
-                await this.getRatedList(sessionId)
+            else {
                 if(timestamp > Number(localStorage.getItem('expires'))) {
                     localStorage.clear()
                     await this.createSession()
