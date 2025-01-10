@@ -230,6 +230,7 @@ export default class App extends Component<object, IAppState> {
             <Layout className='layout'>
                 <GenresProvider value={ providerProps }>
                     <Header className='header'>
+
                         <Tabs
                             defaultActiveKey='1'
                             onChange={ this.onTabSwitch }
@@ -237,6 +238,7 @@ export default class App extends Component<object, IAppState> {
                             style={{ display: 'grid', placeItems: 'center' }}
                             destroyInactiveTabPane
                         />
+                        <button type='button' onClick={() => localStorage.clear()} >Clear localStorage</button>
                         { searchInput }
                     </Header>
                     <Content className='main'>
