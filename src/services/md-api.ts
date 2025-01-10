@@ -22,8 +22,6 @@ export default class MdApi {
 
         const response = await fetch(`${this.urlBase}movie/${id}/rating?guest_session_id=${sessionId}`, requestOptions)
         if(!response.ok) console.error(`Could not fetch ${response.status}`)
-        const data = await response.json();
-        console.log(value, data.status_message)
     }
 
     async getRatedMovies(sessionId) {

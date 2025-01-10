@@ -89,8 +89,8 @@ export default class App extends Component<object, IAppState> {
                     return;
                 }
                 await this.getRatedList(localStorage.getItem('sessionId'))
-                const expires = Number(localStorage.getItem('expires'))
-                alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${new Date(expires)}`)
+
+                alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${localStorage.getItem('expires')}`)
             }
 
         } catch (error) {
