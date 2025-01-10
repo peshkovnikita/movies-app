@@ -58,27 +58,25 @@ export default class App extends Component<object, IAppState> {
 
     async createSession() {
         const [sessionId, expires] = await moviesAPI.createSession()
-        const expireDate = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date())
+        const expireDate: number = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date()).getTime() - 75480000
 
         localStorage.setItem('sessionId', `${sessionId}`)
-        localStorage.setItem('expires', `${expireDate.getTime()}`)
+        localStorage.setItem('expires', `${expireDate}`)
+        alert(`Expires: ${ new Date(expireDate) }\n${ localStorage.getItem('expires') }`)
     }
 
     async initializeData() {
         try {
-            const timestamp = Date.now()
+            const timestamp: number = Date.now()
             await this.loadGenres()
 
             if(!localStorage.getItem('sessionId')) await this.createSession()
-            else {
-                if(timestamp > localStorage.getItem('expires')) {
-                    localStorage.clear()
-                    await this.createSession()
-                }
-                await this.getRatedList(localStorage.getItem('sessionId'))
+            if(timestamp > Number(localStorage.getItem('expires'))) {
+                localStorage.clear()
+                await this.createSession()
             }
 
-            alert(`Timestamp: ${new Date(timestamp)}\n\nExpires: ${new Date(Number(localStorage.getItem('expires')))}`)
+            alert(`Timestamp: ${ new Date(timestamp) }`)
 
         } catch (error) {
             console.error('Initialization failed:', error)

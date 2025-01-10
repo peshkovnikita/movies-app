@@ -26,10 +26,10 @@ export default class MdApi {
 
     async getRatedMovies(sessionId) {
         const response = await fetch(`${this.urlBase}guest_session/${sessionId}/rated/movies`, this.options)
-        if (!response.ok) console.error(`Error: ${response.status} ${response.statusText}`)
-        const ratedList = await response.json()
-
-        return ratedList.results
+        if (response.ok) {
+            const ratedList = await response.json()
+            return ratedList.results
+        }
     }
 
     async createSession() {
