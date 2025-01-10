@@ -78,7 +78,7 @@ export default class App extends Component<object, IAppState> {
                 if(!localStorage.getItem('sessionId')) {
                     const [sessionId, expires] = await moviesAPI.createSession()
                     alert(`Expires from server ${expires}`)
-                    const expireDate = new Date(expires)
+                    const expireDate = new Date(Number(expires))
                     alert(`Expires new Date() ${expireDate}`)
                     alert(`Expires getTime() ${expireDate.getTime()}`)
                     localStorage.setItem('sessionId', `${sessionId}`)
