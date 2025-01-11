@@ -49,11 +49,11 @@ export default class App extends Component<object, IAppState> {
     }
 
     async createSession() {
-        const [sessionId, expires] = await moviesAPI.createSession()
-        const sessionExpires = new Date(expires).getTime()
+        const sessionId = await moviesAPI.createSession()
+        const expires: number = Date.now() + 1_800_000 //сессия истекает через 30 мин
 
         localStorage.setItem('session_id', `${sessionId}`)
-        localStorage.setItem('expires', `${sessionExpires}`)
+        localStorage.setItem('expires', `${expires}`)
     }
 
     async initializeData() {

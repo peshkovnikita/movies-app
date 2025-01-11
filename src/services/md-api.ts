@@ -36,7 +36,7 @@ export default class MdApi {
         const response = await fetch(`${this.urlBase}authentication/guest_session/new`, this.options);
         if (!response.ok) throw new Error(`Could not fetch ${response.status}`)
         const data = await response.json();
-        return [data.guest_session_id, data.expires_at]
+        return data.guest_session_id
     }
 
     async getAllGenres() {
