@@ -1,6 +1,5 @@
 import { Component, ChangeEvent } from 'react';
 import { debounce } from 'lodash';
-import { parse } from 'date-fns';
 import MdApi from './services/md-api';
 import MoviesList from './components/movies-list/movie-list';
 import './App.css'
@@ -24,11 +23,8 @@ interface IGenre {
 
 interface IAppState {
     movieList?: IMovies[] | null
-    totalMovies?: number
-    paginatedMovies?: IMovies[][] | null
     isLoading?: boolean
     error?: boolean
-    currentPage?: number,
     ratedList?: IMovies[] | null
     tab?: 'search' | 'rating'
 }
@@ -38,16 +34,12 @@ interface IMdApi {
 }
 
 export default class App extends Component<object, IAppState> {
-
     private genresList: IGenre[] | null = null
 
     state: IAppState = {
         movieList: null,
-        totalMovies: 0,
-        paginatedMovies: null,
         isLoading: true,
         error: false,
-        currentPage: 1,
         ratedList: null,
         tab: 'search'
     }
@@ -58,26 +50,27 @@ export default class App extends Component<object, IAppState> {
 
     async createSession() {
         const [sessionId, expires] = await moviesAPI.createSession()
-        const expireDate: number = parse(expires, "yyyy-MM-dd HH:mm:ss 'UTC'", new Date()).getTime()
+        const sessionExpires = new Date(expires).getTime()
 
-        localStorage.setItem('sessionId', `${sessionId}`)
-        localStorage.setItem('expires', `${expireDate}`)
+        localStorage.setItem('session_id', `${sessionId}`)
+        localStorage.setItem('expires', `${sessionExpires}`)
     }
 
     async initializeData() {
         try {
             const timestamp: number = Date.now()
-            const sessionId = localStorage.getItem('sessionId')
+            const sessionId: string = localStorage.getItem('session_id')
             await this.loadGenres()
-            await this.getRatedList(sessionId)
 
             if(!sessionId) await this.createSession()
             else {
-                if(timestamp > Number(localStorage.getItem('expires'))) {
-                    localStorage.clear()
+                if(timestamp > localStorage.getItem('expires')) {
                     await this.createSession()
                 }
             }
+
+            await this.getRatedList(sessionId)
+
         } catch (error) {
             console.error('Initialization failed:', error)
             this.setState({ error: true, isLoading: false })
@@ -99,10 +92,8 @@ export default class App extends Component<object, IAppState> {
         this.setState({
             movieList: null,
             totalMovies: 0,
-            paginatedMovies: null,
             isLoading: false,
             error: false,
-            currentPage: 1,
             tab: 'search'
         })
     }
@@ -114,15 +105,6 @@ export default class App extends Component<object, IAppState> {
 
     debounceOnChange = debounce(this.onSearchChange, 700)
 
-    paginateMovies = (arr: IMovies[], size: number): IMovies[][] => {
-        const initial = [...arr]
-        const result: IMovies[][] = []
-        for (let i = 0; i < initial.length; i += size) {
-            result.push(initial.slice(i, i + size))
-        }
-        return result
-    }
-
     compareRating(movies, ratedMovies): IMovies[] {
         return movies.map(movie => {
             const ratedMovie = ratedMovies.find(rm => rm.id === movie.id)
@@ -132,20 +114,12 @@ export default class App extends Component<object, IAppState> {
 
     async updateMovies(keyword: string): Promise<void> {
         this.setState({ isLoading: true })
-        this.getRatedList(localStorage.getItem('sessionId'))
+
         try {
             let list = await moviesAPI.getMovies(keyword);
             if(list.length) {
-                if(this.state.ratedList) {
-                    list = this.compareRating(list, this.state.ratedList)
-                }
-                const paginatedMovies = this.paginateMovies(list, 6)
-                this.setState({
-                    movieList: paginatedMovies[0],
-                    totalMovies: list.length,
-                    paginatedMovies,
-                    isLoading: false
-                })
+                if(this.state.ratedList) list = this.compareRating(list, this.state.ratedList)
+                this.setState({ movieList: list, isLoading: false})
             }
             else this.setState({ isLoading: false })
         }
@@ -160,55 +134,26 @@ export default class App extends Component<object, IAppState> {
     async getRatedList(sessionId) {
         const list = await moviesAPI.getRatedMovies(sessionId)
         if(list) this.setState({ ratedList: list })
+        else return;
     }
 
-    onPageChange = (page: number) => {
-        const { paginatedMovies } = this.state
-        this.setState({
-            currentPage: page,
-            movieList: paginatedMovies[page - 1]
-        })
-    }
-
-    onTabSwitch = (key: string) => {
-        if(key === '1') this.setState({tab: 'search'})
-        else {
-            this.getRatedList(localStorage.getItem('sessionId'))
-            this.setState({
-                tab: 'rating',
-                paginatedMovies: null,
-                movieList: null,
-                currentPage: 1
-            })
-        }
+    onTabSwitch = async (key: string) => {
+        await this.getRatedList(localStorage.getItem('session_id'))
+        if (key === '1') this.setState({ tab: 'search' })
+        else this.setState({ tab: 'rating' })
     }
 
     render() {
-        const { movieList, isLoading, error, totalMovies, currentPage, tab, ratedList } = this.state
+        const { movieList, isLoading, error, tab, ratedList } = this.state
 
         const spinner = isLoading ? <Spin size='large' /> : null;
         const alertWarning = error ? <Alert message='Network error. Use VPN' type='warning' /> : null;
         const content = !error && !isLoading
             ? <MoviesList moviesData={ tab === 'search' ? movieList : ratedList } /> : null
 
-        const searchInput = tab === 'search'
-            ? <Input placeholder='Type for searching...'
-                     onChange={this.debounceOnChange}
-                     onClear={this.onClear}
-                     allowClear disabled={isLoading || error}/>
-            : null
-
-        const pagination = movieList && tab === 'search'
-            ? <Pagination align='center'
-                          current={currentPage}
-                          total={totalMovies}
-                          defaultPageSize={6}
-                          onChange={this.onPageChange}/>
-            : null
-
         const providerProps = {
             genresList: this.genresList,
-            sessionId: localStorage.getItem('sessionId')
+            sessionId: localStorage.getItem('session_id')
         }
 
         return (
@@ -220,9 +165,15 @@ export default class App extends Component<object, IAppState> {
                             onChange={ this.onTabSwitch }
                             items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
                             style={{ display: 'grid', placeItems: 'center' }}
-                            destroyInactiveTabPane
                         />
-                        { searchInput }
+                        <div style={{ height: '32px' }}>
+                            <Input placeholder='Type for searching...'
+                                   onChange={this.debounceOnChange}
+                                   onClear={this.onClear}
+                                   style={{ display: tab === 'rating' ? 'none' : 'inline-flex' }}
+                                   allowClear disabled={isLoading || error}
+                            />
+                        </div>
                     </Header>
                     <Content className='main'>
                         <Flex className='cards-container' justify='center' >
@@ -232,7 +183,7 @@ export default class App extends Component<object, IAppState> {
                         </Flex>
                     </Content>
                     <Footer>
-                        { pagination }
+                        { movieList ? <Pagination align='center' defaultCurrent={1} /> : null }
                     </Footer>
                 </GenresProvider>
             </Layout>

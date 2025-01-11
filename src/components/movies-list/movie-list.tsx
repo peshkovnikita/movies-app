@@ -32,7 +32,7 @@ export default class MovieList extends Component<IMovieListProps, IMovieListStat
         const { list } = this.state;
 
         const movies = list
-            ? list.map(movieInfo => <MovieCard {...movieInfo} key={ Date.now() + Number(Math.random().toFixed(4)) } />)
+            ? list.map(movieInfo => <MovieCard {...movieInfo} key={ movieInfo.id } />)
             : null;
 
         return(
