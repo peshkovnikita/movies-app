@@ -65,6 +65,7 @@ export default class App extends Component<object, IAppState> {
             if(!sessionId) await this.createSession()
             else {
                 if(timestamp > localStorage.getItem('expires')) {
+                    localStorage.clear()
                     await this.createSession()
                 }
             }
