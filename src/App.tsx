@@ -35,6 +35,7 @@ interface IMdApi {
 
 export default class App extends Component<object, IAppState> {
     private genresList: IGenre[] | null = null
+    private timestamp: number = null
 
     state: IAppState = {
         movieList: null,
@@ -45,12 +46,13 @@ export default class App extends Component<object, IAppState> {
     }
 
     componentDidMount() {
+        this.timestamp = Date.now()
         this.initializeData();
     }
 
     async createSession() {
         const sessionId = await moviesAPI.createSession()
-        const expires: number = Date.now() + 180_000 //сессия истекает через 3 мин
+        const expires: number = Date.now() + 300_000 //сессия истекает через 5 мин
 
         localStorage.setItem('session_id', `${sessionId}`)
         localStorage.setItem('expires', `${expires}`)
@@ -58,34 +60,23 @@ export default class App extends Component<object, IAppState> {
 
     async initializeData() {
         try {
-            const timestamp: number = Date.now()
             const sessionId: string = localStorage.getItem('session_id')
-            await this.loadGenres()
+            this.genresList = await moviesAPI.getAllGenres()
 
             if(!sessionId) await this.createSession()
             else {
-                if(timestamp > localStorage.getItem('expires')) {
+                await this.getRatedList(sessionId)
+                if(this.timestamp > localStorage.getItem('expires')) {
                     localStorage.clear()
                     await this.createSession()
                 }
             }
-
-            await this.getRatedList(sessionId)
-
         } catch (error) {
             console.error('Initialization failed:', error)
-            this.setState({ error: true, isLoading: false })
+            this.setState({ error: true })
         }
-    }
-
-    async loadGenres() {
-        try {
-            this.genresList = await moviesAPI.getAllGenres()
+        finally {
             this.setState({ isLoading: false })
-        }
-        catch (err) {
-            this.genresList = null
-            this.setState({ error: true, isLoading: false })
         }
     }
 
@@ -114,9 +105,8 @@ export default class App extends Component<object, IAppState> {
     }
 
     async updateMovies(keyword: string): Promise<void> {
-        this.setState({ isLoading: true })
-
         try {
+            this.setState({ isLoading: true })
             let list = await moviesAPI.getMovies(keyword);
             if(list.length) {
                 if(this.state.ratedList) list = this.compareRating(list, this.state.ratedList)
@@ -166,6 +156,7 @@ export default class App extends Component<object, IAppState> {
                             onChange={ this.onTabSwitch }
                             items={[{ key: '1', label: 'Search' }, { key: '2', label: 'Rated' }]}
                             style={{ display: 'grid', placeItems: 'center' }}
+                            destroyInactiveTabPane='true'
                         />
                         <div style={{ height: '32px' }}>
                             <Input placeholder='Type for searching...'
